@@ -2,6 +2,7 @@ jasypt: #패스워드 암호화/복호화 키
   encryptor:
     password: ${my_password} # 배포자동화  환경변수 사용
 #jasypt.encryptor.password=butfast22
+#my_password=butfast22
 spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
