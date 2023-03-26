@@ -12,7 +12,7 @@ phases:
       - ./gradlew build
   post_build:
     commands:
-      - echo $(basename ./DeployServer/build/libs/*.jar)
+      - echo $(basename ./server/build/libs/*.jar)
 artifacts:
   files:
     - server/build/libs/*.jar   #경로지정 확인
