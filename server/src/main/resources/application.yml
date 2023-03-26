@@ -51,7 +51,7 @@ naver:  #naver API 설정
     id: ENC(rbiCFlHAp11UusOi/ypq9EDX4NTmpRvEJewabaeqvZM=)
     secret: ENC(CbkdopKojXkFiY2OuQOLpMbvCTJkKN9/)
 
-#jasypt: #패스워드 암호화/복호화 키
-#  encryptor:
-#    password: ${{secrets.SECRET_KEY}} # 깃허브액션에 등록된 환경변수 사용
+jasypt: #패스워드 암호화/복호화 키
+  encryptor:
+    password: ${codepipeline.password} # 깃허브액션에 등록된 환경변수 사용
 
