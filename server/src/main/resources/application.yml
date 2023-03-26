@@ -1,3 +1,7 @@
+jasypt: #패스워드 암호화/복호화 키
+  encryptor:
+    password: ${codepipeline.password:${mypassword}} # 배포자동화  환경변수 사용
+
 spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
@@ -50,8 +54,3 @@ naver:  #naver API 설정
   client:
     id: ENC(rbiCFlHAp11UusOi/ypq9EDX4NTmpRvEJewabaeqvZM=)
     secret: ENC(CbkdopKojXkFiY2OuQOLpMbvCTJkKN9/)
-
-jasypt: #패스워드 암호화/복호화 키
-  encryptor:
-    password: ${codepipeline.password:${mypassword}} # 배포자동화  환경변수 사용
-
