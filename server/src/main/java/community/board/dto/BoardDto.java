@@ -34,7 +34,7 @@ public class BoardDto {
         }
     }
 
-    @Getter
+    @Getter @Setter
     @RequiredArgsConstructor
     @ToString
     public static class Patch {

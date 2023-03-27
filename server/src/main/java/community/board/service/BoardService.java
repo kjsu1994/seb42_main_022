@@ -74,6 +74,7 @@ public class BoardService {
         }return null;
     }
 
+
     /* 추천 게시글 페이지 */
     @Transactional
     public Page<Board> rankBoards(Board.KindOfBoard kindOfBoard , Pageable pageable){

@@ -58,22 +58,21 @@ tasks.named('test') {
 }
 
     // Querydsl 설정부
-def generated = 'src/main/generated'  //파일경로
+        def generated = 'src/main/generated'  //파일경로
 // build디렉터리 안에 있는걸 눈에 보이게 꺼내옴
 // ide같은 툴을 사용해서 발생할 수 있는 잠재적 문제를 해결하기위함
 
 // querydsl QClass 파일 생성 위치를 지정
-tasks.withType(JavaCompile) {
-    options.getGeneratedSourceOutputDirectory().set(file(generated))
-}
+    tasks.withType(JavaCompile) {
+        options.getGeneratedSourceOutputDirectory().set(file(generated))
+    }
 
 // java source set 에 querydsl QClass 위치 추가
-sourceSets {
-    main.java.srcDirs += [generated]
-}
+    sourceSets {
+        main.java.srcDirs += [generated]
+    }
 
 // gradle clean 시에 QClass 디렉토리 삭제
-clean {
-    delete file(generated)  //build clean할때 해당 파일도 같이 삭제
-}
-
+    clean {
+        delete file(generated)  //build clean할때 해당 파일도 같이 삭제
+    }
