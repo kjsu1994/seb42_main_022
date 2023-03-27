@@ -4,6 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum ExceptionCode {
+    NOT_LOGIN(402,"login, please"),
+    REFRESH_TOKEN_NOT_FOUND(424, "RefreshToken not found"),
+    NOT_VALIDATE(423, "Not validate token"),
     BOARD_CANNOT_CHANGE(403,"게시판을 수정할 권한이 없습니다."),
     COMMENT_CANNOT_CHANGE(403,"질문을 수정할 권한이 없습니다."),
 

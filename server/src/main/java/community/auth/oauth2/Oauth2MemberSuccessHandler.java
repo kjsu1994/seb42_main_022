@@ -1,6 +1,8 @@
 package community.auth.oauth2;
 
 import community.auth.jwt.JwtTokenizer;
+import community.auth.refreshtoken.RefreshToken;
+import community.auth.refreshtoken.RefreshTokenRepository;
 import community.auth.utils.CustomAuthorityUtils;
 import community.auth.utils.ErrorResponder;
 import community.exception.BusinessLogicException;
@@ -30,13 +32,16 @@ public class Oauth2MemberSuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final JwtTokenizer jwtTokenizer;
     private final CustomAuthorityUtils customAuthorityUtils;
     private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public Oauth2MemberSuccessHandler(JwtTokenizer jwtTokenizer,
                                       CustomAuthorityUtils customAuthorityUtils,
-                                      MemberRepository memberRepository){
+                                      MemberRepository memberRepository,
+                                      RefreshTokenRepository refreshTokenRepository){
         this.jwtTokenizer = jwtTokenizer;
         this.customAuthorityUtils = customAuthorityUtils;
         this.memberRepository = memberRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
@@ -56,7 +61,11 @@ public class Oauth2MemberSuccessHandler extends SimpleUrlAuthenticationSuccessHa
             //사용자 생성 정보로 토큰 생성
             String accessToken = delegateAccessToken(findMember);
             String refreshToken = delegateRefreshToken(findMember);
-
+            
+            /*리프레시 토큰 레퍼지토리에 저장*/
+            RefreshToken savedRefreshToken = new RefreshToken();
+            savedRefreshToken.setRefreshToken(refreshToken);
+            refreshTokenRepository.save(savedRefreshToken);
 
             response.setHeader("Authorization", "Bearer " + accessToken);
             response.setHeader("RefreshToken", refreshToken);

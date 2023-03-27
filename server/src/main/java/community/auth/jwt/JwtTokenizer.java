@@ -1,5 +1,7 @@
 package community.auth.jwt;
 
+import community.exception.BusinessLogicException;
+import community.exception.ExceptionCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -86,5 +88,12 @@ public class JwtTokenizer {     // 헤더로
         return key;
     }
 
+    /*토큰 유효성 검증*/
+    public boolean validateToken(String token){
+        if(getClaims(token,encodeBase64SecretKey(secretKey)) == null){
+            throw new BusinessLogicException(ExceptionCode.NOT_LOGIN);
+        }
+        else return true;
+    }
 
 }
