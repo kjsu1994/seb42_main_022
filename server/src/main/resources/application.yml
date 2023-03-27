@@ -12,12 +12,12 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
   datasource:
-    url: ENC(ImRNgs/uESNrQ01QEDXsp7wzt00GeiVmhnZhEvjtGniC1yEvZ4TKq5U+kRCGu45QpAJ512hAOuUhXZ6k0k9KO8PWEWQrYKo9WSLmSF6RX71WP8Irldl1QY7KyEw345WG3Jrgv+3Fv5Eqlf+mldNdQw==)
-    username: ENC(FANnAPp1m+SsIgLyBF6Yug==)
-    password: ENC(TpumaLOo9HiikrzIQ66yY4ah/HwXKq3X)
-#    url: jdbc:mysql://localhost:3306/community?autoReconnect=true
-#    username: root
-#    password: 1234
+#    url: ENC(ImRNgs/uESNrQ01QEDXsp7wzt00GeiVmhnZhEvjtGniC1yEvZ4TKq5U+kRCGu45QpAJ512hAOuUhXZ6k0k9KO8PWEWQrYKo9WSLmSF6RX71WP8Irldl1QY7KyEw345WG3Jrgv+3Fv5Eqlf+mldNdQw==)
+#    username: ENC(FANnAPp1m+SsIgLyBF6Yug==)
+#    password: ENC(TpumaLOo9HiikrzIQ66yY4ah/HwXKq3X)
+    url: jdbc:mysql://localhost:3306/community?autoReconnect=true
+    username: root
+    password: 1234
   redis:
     host: localhost
     port: 6379
@@ -41,7 +41,7 @@ mail:
 
 jwt:
   secret-key: ENC(QTKjempCn+a9nX+/g7yPL4cjydlx3H++BoqZvdD8hnQbs2A7jwmhG48/6S179LF5XSxEkLNakdwsXbcJtg5/Uw==)
-  access-token-expiration-minutes: 10
+  access-token-expiration-minutes: 120
   refresh-token-expiration-minutes: 420
 
 cloud: # AWS 계정 설정
