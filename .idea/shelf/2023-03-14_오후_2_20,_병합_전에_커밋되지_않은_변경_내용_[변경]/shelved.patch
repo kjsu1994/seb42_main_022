@@ -1,0 +1,366 @@
+Index: server/src/main/java/community/board/controller/BoardController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package community.board.controller;\r\n\r\nimport community.board.dto.BoardDto;\r\nimport community.board.entity.Board;\r\nimport community.type.SearchType;\r\nimport community.board.mapper.BoardMapper;\r\nimport community.board.repository.BoardRepository;\r\nimport community.board.service.BoardService;\r\nimport community.globaldto.SingleResponseDto;\r\nimport community.like.dto.BoardLikeDto;\r\nimport community.like.service.BoardLikeService;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.data.domain.Page;\r\nimport org.springframework.data.domain.Pageable;\r\nimport org.springframework.data.domain.Sort;\r\nimport org.springframework.data.web.PageableDefault;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.validation.annotation.Validated;\r\nimport org.springframework.web.bind.annotation.*;\r\n\r\nimport javax.validation.Valid;\r\nimport javax.validation.constraints.Positive;\r\nimport java.util.List;\r\n\r\n@RestController\r\n@RequestMapping(\"/boards\")\r\n@RequiredArgsConstructor\r\n@Validated\r\npublic class BoardController {\r\n    private final BoardService boardService;\r\n    private final BoardMapper boardMapper;\r\n    private final BoardLikeService boardLikeService;\r\n    private final BoardRepository boardRepository;\r\n\r\n    @PostMapping\r\n    public ResponseEntity postBoard(@Valid @RequestBody BoardDto.Post boardPostDto){\r\n        Board board = boardMapper.boardPostToBoard(boardPostDto);\r\n        Board boardCreate = boardService.createBoard(board);\r\n        BoardDto.Response response = boardMapper.boardToBoardResponse(boardCreate);\r\n\r\n        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);\r\n    }\r\n\r\n    @PatchMapping(\"/{board-id}\")\r\n    public ResponseEntity updateBoard(@PathVariable(\"board-id\")@Positive long boardId,\r\n                                      @Valid @RequestBody BoardDto.Patch boardPatchDto){\r\n        Board board = boardMapper.boardPatchToBoard(boardPatchDto);\r\n        board.setBoardId(boardId);\r\n\r\n        Board updateBoard = boardService.updateBoard(board);\r\n        BoardDto.Response response = boardMapper.boardToBoardResponse(updateBoard);\r\n\r\n        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);\r\n    }\r\n\r\n    @GetMapping //부분검색 //http://localhost:8080/boards?searchType=CONTENTS&searchValue=검색어\r\n    public ResponseEntity searchBoards(@RequestParam(required = false) SearchType searchType,//required = false - 선택적 파라미터\r\n                                         @RequestParam(required = false)String searchValue,\r\n                                         @PageableDefault(size = 10,sort = \"createdAt\", direction = Sort.Direction.DESC) Pageable pageable) //페이지 기본값\r\n    {\r\n        Page<Board> boardPage = boardService.findBoards(searchType, searchValue, pageable);\r\n        List<Board> boards = boardPage.getContent();\r\n        List<BoardDto.Response> response = boardMapper.boardToBoardListResponse(boards);\r\n        return new ResponseEntity(response, HttpStatus.OK);\r\n    }\r\n\r\n    @GetMapping(\"/{board-id}\")\r\n    public ResponseEntity getBoardById(@PathVariable(\"board-id\") @Positive long boardId){\r\n        boardService.updateViewCount(boardId);      // 조회수 증가\r\n        Board board = boardService.findBoardById(boardId);\r\n        BoardDto.Response response = boardMapper.boardToBoardResponse(board);\r\n\r\n        return new ResponseEntity<>(response, HttpStatus.OK);\r\n    }\r\n\r\n    @DeleteMapping(\"/{board-id}\")\r\n    public ResponseEntity deleteBoard(@PathVariable(\"board-id\") @Positive long boardId){\r\n        boardService.deleteBoard(boardId);\r\n        return ResponseEntity.noContent().build();\r\n    }\r\n\r\n    @PostMapping(\"/{board-id}/Like\")\r\n    public ResponseEntity<?> upLikeBoard(@Positive @PathVariable(\"board-id\") long boardId,\r\n                                         @Valid @RequestBody BoardLikeDto requestBody) {\r\n\r\n        Board likeBoard = boardLikeService.boardLikeUP(boardId, requestBody.getMemberId());\r\n        BoardDto.Response response = boardMapper.boardToBoardResponse(likeBoard);\r\n\r\n        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/java/community/board/controller/BoardController.java b/server/src/main/java/community/board/controller/BoardController.java
+--- a/server/src/main/java/community/board/controller/BoardController.java	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/java/community/board/controller/BoardController.java	(date 1678770729389)
+@@ -9,6 +9,7 @@
+ import community.globaldto.SingleResponseDto;
+ import community.like.dto.BoardLikeDto;
+ import community.like.service.BoardLikeService;
++import io.swagger.v3.oas.annotations.Operation;
+ import lombok.RequiredArgsConstructor;
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.Pageable;
+@@ -33,6 +34,7 @@
+     private final BoardLikeService boardLikeService;
+     private final BoardRepository boardRepository;
+ 
++//    @Operation
+     @PostMapping
+     public ResponseEntity postBoard(@Valid @RequestBody BoardDto.Post boardPostDto){
+         Board board = boardMapper.boardPostToBoard(boardPostDto);
+@@ -68,6 +70,7 @@
+     @GetMapping("/{board-id}")
+     public ResponseEntity getBoardById(@PathVariable("board-id") @Positive long boardId){
+         boardService.updateViewCount(boardId);      // 조회수 증가
++
+         Board board = boardService.findBoardById(boardId);
+         BoardDto.Response response = boardMapper.boardToBoardResponse(board);
+ 
+Index: server/src/main/java/community/like/service/CommentLikeService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package community.like.service;\r\n\r\nimport community.comment.entity.Comment;\r\nimport community.comment.repository.CommentRepository;\r\nimport community.comment.service.CommentService;\r\nimport community.like.entity.CommentLike;\r\nimport community.like.repository.CommentLikeRepository;\r\nimport community.member.entity.Member;\r\nimport community.member.service.MemberService;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.stereotype.Service;\r\n\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class CommentLikeService {\r\n\r\n    private final CommentService commentService;\r\n    private final MemberService memberService;\r\n    private final CommentLikeRepository commentLikeRepository;\r\n\r\n\r\n    public Comment commentLikeUp(long memberId, long commentId) {\r\n\r\n        Member member = memberService.findVerifiedMember(memberId);\r\n        Comment comment = commentService.findByComment(commentId);\r\n\r\n\r\n        CommentLike commentLike = commentLikeRepository.findByMemberAndComment(member, comment);\r\n\r\n        if (commentLike == null) {\r\n            commentLike = new CommentLike();\r\n            commentLike.setComment(comment);\r\n            commentLike.setMember(member);\r\n            commentLike.setCLikeStatus(true);\r\n            comment.setLikeCount(comment.getLikeCount() + 1);\r\n        }\r\n        else if (commentLike.getCLikeStatus()) {\r\n            commentLike.setCLikeStatus(false);\r\n            comment.setLikeCount(comment.getLikeCount() - 1);\r\n        }\r\n        else if (!commentLike.getCLikeStatus()) {\r\n            commentLike.setCLikeStatus(true);\r\n            comment.setLikeCount(comment.getLikeCount() + 1);\r\n        }\r\n\r\n        commentLikeRepository.save(commentLike);\r\n        return commentService.findByComment(commentId);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/java/community/like/service/CommentLikeService.java b/server/src/main/java/community/like/service/CommentLikeService.java
+--- a/server/src/main/java/community/like/service/CommentLikeService.java	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/java/community/like/service/CommentLikeService.java	(date 1678703080945)
+@@ -1,7 +1,6 @@
+ package community.like.service;
+ 
+ import community.comment.entity.Comment;
+-import community.comment.repository.CommentRepository;
+ import community.comment.service.CommentService;
+ import community.like.entity.CommentLike;
+ import community.like.repository.CommentLikeRepository;
+Index: server/src/main/java/community/like/service/BoardLikeService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package community.like.service;\r\n\r\nimport community.board.entity.Board;\r\nimport community.like.entity.BoardLike;\r\nimport community.member.entity.Member;\r\nimport community.board.service.BoardService;\r\nimport community.like.repository.BoardLikeRepository;\r\nimport community.member.service.MemberService;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.stereotype.Service;\r\n\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class BoardLikeService {\r\n    private final BoardLikeRepository boardLikeRepository;\r\n\r\n    private final BoardService boardService;\r\n\r\n    private final MemberService memberService;\r\n\r\n    public Board boardLikeUP(long memberId, long boardId) {\r\n\r\n        Member member = memberService.findMember(memberId);\r\n        Board board = boardService.findBoardById(boardId);\r\n\r\n        BoardLike boardLike = boardLikeRepository.findByMemberAndBoard(member, board);\r\n\r\n        if (boardLike == null) {\r\n            boardLike = new BoardLike();\r\n            boardLike.setBoard(board);\r\n            boardLike.setMember(member);\r\n            boardLike.setBLikeStatus(true);\r\n            board.setLikeCount(board.getLikeCount() + 1);\r\n        }\r\n        else if (boardLike.getBLikeStatus()) {\r\n            boardLike.setBLikeStatus(false);\r\n            board.setLikeCount(board.getLikeCount() -1);\r\n        }\r\n        else if (!boardLike.getBLikeStatus()) {\r\n            boardLike.setBLikeStatus(true);\r\n            board.setLikeCount(board.getLikeCount() +1);\r\n        }\r\n\r\n        boardLikeRepository.save(boardLike);\r\n        return boardService.findBoardById(boardId);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/java/community/like/service/BoardLikeService.java b/server/src/main/java/community/like/service/BoardLikeService.java
+--- a/server/src/main/java/community/like/service/BoardLikeService.java	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/java/community/like/service/BoardLikeService.java	(date 1678771064356)
+@@ -9,7 +9,6 @@
+ import lombok.RequiredArgsConstructor;
+ import org.springframework.stereotype.Service;
+ 
+-
+ @Service
+ @RequiredArgsConstructor
+ public class BoardLikeService {
+@@ -33,13 +32,15 @@
+             boardLike.setBLikeStatus(true);
+             board.setLikeCount(board.getLikeCount() + 1);
+         }
++
+         else if (boardLike.getBLikeStatus()) {
+             boardLike.setBLikeStatus(false);
+-            board.setLikeCount(board.getLikeCount() -1);
++            board.setLikeCount(board.getLikeCount() - 1);
+         }
++
+         else if (!boardLike.getBLikeStatus()) {
+             boardLike.setBLikeStatus(true);
+-            board.setLikeCount(board.getLikeCount() +1);
++            board.setLikeCount(board.getLikeCount() + 1);
+         }
+ 
+         boardLikeRepository.save(boardLike);
+Index: server/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    id 'java'\r\n    id 'org.springframework.boot' version '2.7.9'\r\n    id 'io.spring.dependency-management' version '1.0.15.RELEASE'\r\n}\r\n\r\ngroup = 'com.example'\r\nversion = '0.0.1-SNAPSHOT'\r\nsourceCompatibility = '11'\r\n\r\nconfigurations {\r\n    compileOnly {\r\n        extendsFrom annotationProcessor\r\n    }\r\n}\r\n\r\nrepositories {\r\n    mavenCentral()\r\n}\r\n\r\ndependencies {\r\n    implementation 'org.springframework.boot:spring-boot-starter-web'\r\n    runtimeOnly 'com.mysql:mysql-connector-j'\r\n    implementation 'org.springframework.boot:spring-boot-starter-security'//시큐리티\r\n    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'\r\n    implementation 'org.springframework.boot:spring-boot-starter-data-rest' // data rest기능 \r\n    implementation 'org.springframework.data:spring-data-rest-hal-explorer' // 해당내용을 시각적표시\r\n    implementation 'org.springframework.boot:spring-boot-starter-jdbc'\r\n    compileOnly 'org.projectlombok:lombok'\r\n    annotationProcessor 'org.projectlombok:lombok'\r\n    testImplementation 'org.springframework.boot:spring-boot-starter-test'\r\n    testImplementation 'org.springframework.security:spring-security-test'//시큐리티\r\n    implementation 'org.mapstruct:mapstruct:1.5.3.Final'\r\n    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'\r\n    implementation 'org.springframework.boot:spring-boot-starter-validation'\r\n    implementation 'org.springframework.boot:spring-boot-starter-mail'\r\n    implementation 'org.springframework.boot:spring-boot-starter-data-redis' //redis 관련\r\n    implementation 'io.jsonwebtoken:jjwt-api:0.11.5' //jwt\r\n    implementation 'com.google.code.gson:gson'//gson\r\n    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'//jwt\r\n    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'//jwt\r\n\r\n    // queryDSL 설정\r\n    // 엔티티 검색기능 사용 가능\r\n    implementation \"com.querydsl:querydsl-jpa\"\r\n    implementation \"com.querydsl:querydsl-core\"\r\n    implementation \"com.querydsl:querydsl-collections\"\r\n    annotationProcessor \"com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa\" // querydsl JPAAnnotationProcessor 사용 지정\r\n    annotationProcessor \"jakarta.annotation:jakarta.annotation-api\" // java.lang.NoClassDefFoundError (javax.annotation.Generated) 대응 코드\r\n    annotationProcessor \"jakarta.persistence:jakarta.persistence-api\" // java.lang.NoClassDefFoundError (javax.annotation.Entity) 대응 코드\r\n}\r\n\r\ntasks.named('test') {\r\n    useJUnitPlatform()\r\n\r\n    // Querydsl 설정부\r\n    def generated = 'src/main/generated'  //파일경로\r\n// build디렉터리 안에 있는걸 눈에 보이게 꺼내옴\r\n// ide같은 툴을 사용해서 발생할 수 있는 잠재적 문제를 해결하기위함\r\n\r\n// querydsl QClass 파일 생성 위치를 지정\r\n    tasks.withType(JavaCompile) {\r\n        options.getGeneratedSourceOutputDirectory().set(file(generated))\r\n    }\r\n\r\n// java source set 에 querydsl QClass 위치 추가\r\n    sourceSets {\r\n        main.java.srcDirs += [generated]\r\n    }\r\n\r\n// gradle clean 시에 QClass 디렉토리 삭제\r\n    clean {\r\n        delete file(generated)  //build clean할때 해당 파일도 같이 삭제\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/build.gradle b/server/build.gradle
+--- a/server/build.gradle	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/build.gradle	(date 1678770599573)
+@@ -39,6 +39,7 @@
+     implementation 'com.google.code.gson:gson'//gson
+     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'//jwt
+     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'//jwt
++    implementation 'org.springdoc:springdoc-openapi-ui:1.6.9'
+ 
+     // queryDSL 설정
+     // 엔티티 검색기능 사용 가능
+Index: server/src/main/java/community/auth/jwt/JwtTokenizer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package community.auth.jwt;\r\n\r\nimport io.jsonwebtoken.Claims;\r\nimport io.jsonwebtoken.Jws;\r\nimport io.jsonwebtoken.Jwts;\r\nimport io.jsonwebtoken.io.Decoders;\r\nimport io.jsonwebtoken.io.Encoders;\r\nimport io.jsonwebtoken.security.Keys;\r\nimport lombok.Getter;\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.stereotype.Component;\r\n\r\nimport java.nio.charset.StandardCharsets;\r\nimport java.security.Key;\r\nimport java.util.Calendar;\r\nimport java.util.Date;\r\nimport java.util.Map;\r\n@Component\r\npublic class JwtTokenizer {\r\n    @Getter\r\n    @Value(\"${jwt.secret-key}\")\r\n    private String secretKey;\r\n\r\n    @Getter\r\n    @Value(\"${jwt.access-token-expiration-minutes}\")\r\n    private int accessTokenExpirationMinutes;\r\n\r\n    @Getter\r\n    @Value(\"${jwt.refresh-token-expiration-minutes}\")\r\n    private int refreshTokenExpirationMinutes;\r\n\r\n    public String encodeBase64SecretKey(String secretKey) {\r\n        return Encoders.BASE64.encode(secretKey.getBytes(StandardCharsets.UTF_8));\r\n    }\r\n\r\n    public String generateAccessToken(Map<String, Object> claims,\r\n                                      String subject,\r\n                                      Date expiration,\r\n                                      String base64EncodedSecretKey){\r\n        Key key=getKeyFromBase64EncodedKey(base64EncodedSecretKey);\r\n\r\n        return Jwts.builder()\r\n                .setClaims(claims)\r\n                .setSubject(subject)\r\n                .setIssuedAt(Calendar.getInstance().getTime())\r\n                .setExpiration(expiration)\r\n                .signWith(key)\r\n                .compact();\r\n    }\r\n\r\n    public String generateRefreshToken(String subject,\r\n                                       Date expiration,\r\n                                       String base64EncodedSecretKey) {\r\n        Key key = getKeyFromBase64EncodedKey(base64EncodedSecretKey);\r\n\r\n        return Jwts.builder()\r\n                .setSubject(subject)\r\n                .setIssuedAt(Calendar.getInstance().getTime())\r\n                .setExpiration(expiration)\r\n                .signWith(key)\r\n                .compact();\r\n    }\r\n\r\n    public Jws<Claims> getClaims(String jws, String base64EncodedSecretKey){\r\n        Key key=getKeyFromBase64EncodedKey(base64EncodedSecretKey);\r\n\r\n        Jws<Claims> claims=Jwts.parserBuilder()\r\n                .setSigningKey(key)\r\n                .build()\r\n                .parseClaimsJws(jws);\r\n\r\n        return claims;\r\n    }\r\n\r\n    public Date getTokenExpiration(int expirationMinutes){\r\n        Calendar calendar=Calendar.getInstance();\r\n        calendar.add(Calendar.MINUTE, expirationMinutes);\r\n        Date expiration=calendar.getTime();\r\n        return expiration;\r\n    }\r\n\r\n    private Key getKeyFromBase64EncodedKey(String base64EncodedSecretKey){\r\n        byte[] decodedKey= Decoders.BASE64.decode(base64EncodedSecretKey);\r\n        Key key= Keys.hmacShaKeyFor(decodedKey);\r\n\r\n        return key;\r\n    }\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/java/community/auth/jwt/JwtTokenizer.java b/server/src/main/java/community/auth/jwt/JwtTokenizer.java
+--- a/server/src/main/java/community/auth/jwt/JwtTokenizer.java	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/java/community/auth/jwt/JwtTokenizer.java	(date 1678701199975)
+@@ -16,7 +16,7 @@
+ import java.util.Date;
+ import java.util.Map;
+ @Component
+-public class JwtTokenizer {
++public class JwtTokenizer {     // 헤더로
+     @Getter
+     @Value("${jwt.secret-key}")
+     private String secretKey;
+Index: server/src/main/java/community/auth/userdetails/MemberDetailsService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package community.auth.userdetails;\r\n\r\nimport community.auth.utils.CustomAuthorityUtils;\r\nimport community.exception.BusinessLogicException;\r\nimport community.exception.ExceptionCode;\r\nimport community.member.entity.Member;\r\nimport community.member.repository.MemberRepository;\r\nimport org.springframework.security.core.GrantedAuthority;\r\nimport org.springframework.security.core.userdetails.UserDetails;\r\nimport org.springframework.security.core.userdetails.UserDetailsService;\r\nimport org.springframework.security.core.userdetails.UsernameNotFoundException;\r\nimport org.springframework.stereotype.Component;\r\n\r\nimport java.util.Collection;\r\nimport java.util.Optional;\r\n\r\nimport static community.exception.ExceptionCode.*;\r\n\r\n@Component\r\npublic class MemberDetailsService implements UserDetailsService {\r\n    private final MemberRepository memberRepository;\r\n    private final CustomAuthorityUtils authorityUtils;\r\n\r\n    public MemberDetailsService(MemberRepository memberRepository, CustomAuthorityUtils authorityUtils) {\r\n        this.memberRepository = memberRepository;\r\n        this.authorityUtils = authorityUtils;\r\n    }\r\n\r\n    @Override\r\n    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {\r\n        Optional<Member> memberByEmail = memberRepository.findByEmail(username);\r\n        Member findMember = memberByEmail.orElseThrow(() ->\r\n                new BusinessLogicException(MEMBER_NOT_FOUND));\r\n\r\n\r\n        return new MemberDetails(findMember);\r\n    }\r\n\r\n    private final class MemberDetails extends Member implements UserDetails {\r\n\r\n        MemberDetails(Member member) {\r\n            setMemberId(member.getMemberId());\r\n            setEmail(member.getEmail());\r\n            setPassword(member.getPassword());\r\n            setRoles(member.getRoles());\r\n        }\r\n\r\n        @Override\r\n        public Collection<? extends GrantedAuthority> getAuthorities() {\r\n            return authorityUtils.createAuthorities(this.getRoles());\r\n        }\r\n\r\n        @Override\r\n        public String getUsername() {\r\n            return getEmail();\r\n        }\r\n\r\n        @Override\r\n        public boolean isAccountNonExpired() {\r\n            return true;\r\n        }\r\n\r\n        @Override\r\n        public boolean isAccountNonLocked() {\r\n            return true;\r\n        }\r\n\r\n        @Override\r\n        public boolean isCredentialsNonExpired() {\r\n            return true;\r\n        }\r\n\r\n        @Override\r\n        public boolean isEnabled() {\r\n            return true;\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/java/community/auth/userdetails/MemberDetailsService.java b/server/src/main/java/community/auth/userdetails/MemberDetailsService.java
+--- a/server/src/main/java/community/auth/userdetails/MemberDetailsService.java	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/java/community/auth/userdetails/MemberDetailsService.java	(date 1678701200000)
+@@ -17,7 +17,7 @@
+ import static community.exception.ExceptionCode.*;
+ 
+ @Component
+-public class MemberDetailsService implements UserDetailsService {
++public class MemberDetailsService implements UserDetailsService { // 계정정보, 유저 인증 데이터를 불러옴
+     private final MemberRepository memberRepository;
+     private final CustomAuthorityUtils authorityUtils;
+ 
+Index: server/src/main/java/community/like/entity/BoardLike.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package community.like.entity;\r\n\r\nimport community.board.entity.Board;\r\nimport community.member.entity.Member;\r\nimport lombok.Getter;\r\nimport lombok.RequiredArgsConstructor;\r\nimport lombok.Setter;\r\n\r\nimport javax.persistence.*;\r\n\r\n@Entity\r\n@Getter @Setter\r\n@RequiredArgsConstructor\r\npublic class BoardLike {\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    private Long boardLikeId;\r\n    private boolean bLikeStatus;\r\n\r\n    @ManyToOne\r\n    @JoinColumn(name = \"member_id\")\r\n    private Member member;\r\n\r\n    @ManyToOne\r\n    @JoinColumn(name = \"board_id\")\r\n    private Board board;\r\n\r\n    public boolean getBLikeStatus(){\r\n        return bLikeStatus;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/java/community/like/entity/BoardLike.java b/server/src/main/java/community/like/entity/BoardLike.java
+--- a/server/src/main/java/community/like/entity/BoardLike.java	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/java/community/like/entity/BoardLike.java	(date 1678701538846)
+@@ -28,4 +28,4 @@
+     public boolean getBLikeStatus(){
+         return bLikeStatus;
+     }
+-}
++}
+\ No newline at end of file
+Index: server/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring:\r\n  datasource:\r\n    url: jdbc:mysql://localhost:3306/community?serverTimezone=Asia/Seoul\r\n    username: root\r\n    password: 1234\r\n  redis:\r\n    host: localhost\r\n    port: 6379\r\n  jpa:\r\n    hibernate:\r\n      ddl-auto: create\r\n    show-sql: true\r\n    properties:\r\n      hibernate:\r\n        format_sql: true\r\n  data: # spring data rest - 관련 설정\r\n    rest:\r\n      base-path: /api  #endpoint start path\r\n      detection-strategy: annotated\r\nmail:\r\n  address:\r\n    admin: admin@gmail.com\r\njwt:\r\n  secret-key: adsadsadasdasdasdasdasdasd123213123123123123####\r\n  access-token-expiration-minutes: 10\r\n  refresh-token-expiration-minutes: 420\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/server/src/main/resources/application.yml b/server/src/main/resources/application.yml
+--- a/server/src/main/resources/application.yml	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/server/src/main/resources/application.yml	(date 1678701200128)
+@@ -1,3 +1,5 @@
++server:
++  port: 1234
+ spring:
+   datasource:
+     url: jdbc:mysql://localhost:3306/community?serverTimezone=Asia/Seoul
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <annotationProcessing>\r\n      <profile name=\"Gradle Imported\" enabled=\"true\">\r\n        <outputRelativeToContentRoot value=\"true\" />\r\n        <processorPath useClasspath=\"false\">\r\n          <entry name=\"$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.26/8f8cf0372abf564913e9796623aac4c8ea44025a/lombok-1.18.26.jar\" />\r\n          <entry name=\"$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.mapstruct/mapstruct-processor/1.5.3.Final/dce418bedafd71ff8dd2cef15006c0fee788b073/mapstruct-processor-1.5.3.Final.jar\" />\r\n        </processorPath>\r\n        <module name=\"community.main\" />\r\n      </profile>\r\n    </annotationProcessing>\r\n    <bytecodeTargetLevel target=\"11\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/.idea/compiler.xml	(date 1678701200141)
+@@ -7,6 +7,16 @@
+         <processorPath useClasspath="false">
+           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.26/8f8cf0372abf564913e9796623aac4c8ea44025a/lombok-1.18.26.jar" />
+           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.mapstruct/mapstruct-processor/1.5.3.Final/dce418bedafd71ff8dd2cef15006c0fee788b073/mapstruct-processor-1.5.3.Final.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.querydsl/querydsl-apt/5.0.0/3c212d03cc42b5297f62bd22e37b737812245085/querydsl-apt-5.0.0-jpa.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/1.3.5/59eb84ee0d616332ff44aba065f3888cf002cd2d/jakarta.annotation-api-1.3.5.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.persistence/jakarta.persistence-api/2.2.3/8f6ea5daedc614f07a3654a455660145286f024e/jakarta.persistence-api-2.2.3.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.querydsl/querydsl-codegen/5.0.0/d690e92300f528e4161307b286f76aeaf348e2fb/querydsl-codegen-5.0.0.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.querydsl/querydsl-core/5.0.0/7a469f78b7a89bae429f17766fb92687d0ab9e5b/querydsl-core-5.0.0.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.querydsl/codegen-utils/5.0.0/ff8a2ebbc3a317715de0ce2856c2024534d18a1a/codegen-utils-5.0.0.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.inject/javax.inject/1/6975da39a7040257bd51d21a231b76c915872d38/javax.inject-1.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.classgraph/classgraph/4.8.108/1c175d4ce7a1fa67463bad731f37f1a284dab790/classgraph-4.8.108.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mysema.commons/mysema-commons-lang/0.2.4/d09c8489d54251a6c22fbce804bdd4a070557317/mysema-commons-lang-0.2.4.jar" />
++          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.jdt/ecj/3.26.0/4837be609a3368a0f7e7cf0dc1bdbc7fe94993de/ecj-3.26.0.jar" />
+         </processorPath>
+         <module name="community.main" />
+       </profile>
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"790404dd-32ec-49db-b438-bb83838ac20d\" name=\"변경\" comment=\"Comment 완성\">\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/dto/BoardLikeDto.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/dto/CommentLikeDto.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/entity/BoardLike.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/entity/CommentLike.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/repository/BoardLikeRepository.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/repository/CommentLikeRepository.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/service/BoardLikeService.java\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/server/src/main/java/community/like/service/CommentLikeService.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/compiler.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/compiler.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/jpa-buddy.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/jpa-buddy.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/misc.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/misc.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/board/controller/BoardController.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/board/controller/BoardController.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/board/dto/BoardDto.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/board/dto/BoardDto.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/board/entity/Board.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/board/entity/Board.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/board/mapper/BoardMapper.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/board/mapper/BoardMapper.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/board/repository/BoardRepository.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/board/repository/BoardRepository.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/board/service/BoardService.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/board/service/BoardService.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/comment/controller/CommentController.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/comment/controller/CommentController.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/comment/entity/Comment.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/comment/entity/Comment.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/member/controller/MemberController.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/member/controller/MemberController.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/member/dto/MemberDto.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/member/dto/MemberDto.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/member/entity/Member.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/member/entity/Member.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/java/community/member/service/MemberService.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/java/community/member/service/MemberService.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/server/src/main/resources/application.yml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/server/src/main/resources/application.yml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"ExternalProjectsData\">\r\n    <projectState path=\"$PROJECT_DIR$/server\">\r\n      <ProjectState />\r\n    </projectState>\r\n  </component>\r\n  <component name=\"ExternalProjectsManager\">\r\n    <system id=\"GRADLE\">\r\n      <state>\r\n        <projects_view>\r\n          <tree_state>\r\n            <expand />\r\n            <select />\r\n          </tree_state>\r\n        </projects_view>\r\n      </state>\r\n    </system>\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Class\" />\r\n        <option value=\"Interface\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"serverDev\" />\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"GitToolBoxStore\">\r\n    <option name=\"projectConfigVersion\" value=\"5\" />\r\n    <option name=\"recentBranches\">\r\n      <RecentBranches>\r\n        <option name=\"branchesForRepo\">\r\n          <list>\r\n            <RecentBranchesForRepo>\r\n              <option name=\"branches\">\r\n                <list>\r\n                  <RecentBranch>\r\n                    <option name=\"branchName\" value=\"sung\" />\r\n                    <option name=\"lastUsedInstant\" value=\"1678177617\" />\r\n                  </RecentBranch>\r\n                  <RecentBranch>\r\n                    <option name=\"branchName\" value=\"serverDev\" />\r\n                    <option name=\"lastUsedInstant\" value=\"1678177607\" />\r\n                  </RecentBranch>\r\n                </list>\r\n              </option>\r\n              <option name=\"repositoryRootUrl\" value=\"file://$PROJECT_DIR$\" />\r\n            </RecentBranchesForRepo>\r\n          </list>\r\n        </option>\r\n      </RecentBranches>\r\n    </option>\r\n  </component>\r\n  <component name=\"JpbToolWindowState\">\r\n    <option name=\"isToolWindowVisible\" value=\"false\" />\r\n  </component>\r\n  <component name=\"MarkdownSettingsMigration\">\r\n    <option name=\"stateVersion\" value=\"1\" />\r\n  </component>\r\n  <component name=\"ProjectId\" id=\"2MffT4lrpHlIlwUl4GAc4ClFQuh\" />\r\n  <component name=\"ProjectLevelVcsManager\">\r\n    <ConfirmationsSetting value=\"2\" id=\"Add\" />\r\n  </component>\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;D:/intelli/seb42_pre_014&quot;\r\n  }\r\n}</component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"애플리케이션 수준\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"디폴트 작업\">\r\n      <changelist id=\"790404dd-32ec-49db-b438-bb83838ac20d\" name=\"변경\" comment=\"\" />\r\n      <created>1678163562359</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1678163562359</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"Comment 완성\">\r\n      <created>1678177349321</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1678177349321</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"Comment 완성\">\r\n      <created>1678177596165</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1678177596165</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"3\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"Comment 완성\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"Comment 완성\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision efeabbccab71717b741209abcea61b7b28669876)
++++ b/.idea/workspace.xml	(date 1678770604664)
+@@ -4,31 +4,16 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="790404dd-32ec-49db-b438-bb83838ac20d" name="변경" comment="Comment 완성">
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/dto/BoardLikeDto.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/dto/CommentLikeDto.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/entity/BoardLike.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/entity/CommentLike.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/repository/BoardLikeRepository.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/repository/CommentLikeRepository.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/service/BoardLikeService.java" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/server/src/main/java/community/like/service/CommentLikeService.java" afterDir="false" />
++    <list default="true" id="790404dd-32ec-49db-b438-bb83838ac20d" name="변경" comment="feat : 좋아요 기능 추가 + 조회수 기능 추가">
+       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/.idea/jpa-buddy.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jpa-buddy.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/server/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/server/build.gradle" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/auth/jwt/JwtTokenizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/auth/jwt/JwtTokenizer.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/auth/userdetails/MemberDetailsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/auth/userdetails/MemberDetailsService.java" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/server/src/main/java/community/board/controller/BoardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/board/controller/BoardController.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/board/dto/BoardDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/board/dto/BoardDto.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/board/entity/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/board/entity/Board.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/board/mapper/BoardMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/board/mapper/BoardMapper.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/board/repository/BoardRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/board/repository/BoardRepository.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/board/service/BoardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/board/service/BoardService.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/comment/controller/CommentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/comment/controller/CommentController.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/comment/entity/Comment.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/comment/entity/Comment.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/member/controller/MemberController.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/member/controller/MemberController.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/member/dto/MemberDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/member/dto/MemberDto.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/member/entity/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/member/entity/Member.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/member/service/MemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/member/service/MemberService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/like/entity/BoardLike.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/like/entity/BoardLike.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/like/service/BoardLikeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/like/service/BoardLikeService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/server/src/main/java/community/like/service/CommentLikeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/community/like/service/CommentLikeService.java" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/server/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/resources/application.yml" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+@@ -44,9 +29,28 @@
+   <component name="ExternalProjectsManager">
+     <system id="GRADLE">
+       <state>
++        <task path="$PROJECT_DIR$/server">
++          <activation />
++        </task>
+         <projects_view>
+           <tree_state>
+-            <expand />
++            <expand>
++              <path>
++                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
++                <item name="community" type="f1a62948:ProjectNode" />
++              </path>
++              <path>
++                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
++                <item name="community" type="f1a62948:ProjectNode" />
++                <item name="Tasks" type="e4a08cd1:TasksNode" />
++              </path>
++              <path>
++                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
++                <item name="community" type="f1a62948:ProjectNode" />
++                <item name="Tasks" type="e4a08cd1:TasksNode" />
++                <item name="build" type="c8890929:TasksNode$1" />
++              </path>
++            </expand>
+             <select />
+           </tree_state>
+         </projects_view>
+@@ -115,6 +119,56 @@
+     &quot;last_opened_file_path&quot;: &quot;D:/intelli/seb42_pre_014&quot;
+   }
+ }</component>
++  <component name="RunManager">
++    <configuration name="server [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
++      <ExternalSystemSettings>
++        <option name="executionName" />
++        <option name="externalProjectPath" value="$PROJECT_DIR$/server" />
++        <option name="externalSystemIdString" value="GRADLE" />
++        <option name="scriptParameters" />
++        <option name="taskDescriptions">
++          <list />
++        </option>
++        <option name="taskNames">
++          <list>
++            <option value="build" />
++          </list>
++        </option>
++        <option name="vmOptions" />
++      </ExternalSystemSettings>
++      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
++      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
++      <DebugAllEnabled>false</DebugAllEnabled>
++      <method v="2" />
++    </configuration>
++    <configuration name="server [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
++      <ExternalSystemSettings>
++        <option name="executionName" />
++        <option name="externalProjectPath" value="$PROJECT_DIR$/server" />
++        <option name="externalSystemIdString" value="GRADLE" />
++        <option name="scriptParameters" />
++        <option name="taskDescriptions">
++          <list />
++        </option>
++        <option name="taskNames">
++          <list>
++            <option value="clean" />
++          </list>
++        </option>
++        <option name="vmOptions" />
++      </ExternalSystemSettings>
++      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
++      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
++      <DebugAllEnabled>false</DebugAllEnabled>
++      <method v="2" />
++    </configuration>
++    <recent_temporary>
++      <list>
++        <item itemvalue="Gradle.server [build]" />
++        <item itemvalue="Gradle.server [clean]" />
++      </list>
++    </recent_temporary>
++  </component>
+   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="애플리케이션 수준" UseSingleDictionary="true" transferred="true" />
+   <component name="TaskManager">
+     <task active="true" id="Default" summary="디폴트 작업">
+@@ -138,7 +192,14 @@
+       <option name="project" value="LOCAL" />
+       <updated>1678177596165</updated>
+     </task>
+-    <option name="localTasksCounter" value="3" />
++    <task id="LOCAL-00003" summary="feat : 좋아요 기능 추가 + 조회수 기능 추가">
++      <created>1678672502873</created>
++      <option name="number" value="00003" />
++      <option name="presentableId" value="LOCAL-00003" />
++      <option name="project" value="LOCAL" />
++      <updated>1678672502873</updated>
++    </task>
++    <option name="localTasksCounter" value="4" />
+     <servers />
+   </component>
+   <component name="Vcs.Log.Tabs.Properties">
+@@ -154,6 +215,7 @@
+   </component>
+   <component name="VcsManagerConfiguration">
+     <MESSAGE value="Comment 완성" />
+-    <option name="LAST_COMMIT_MESSAGE" value="Comment 완성" />
++    <MESSAGE value="feat : 좋아요 기능 추가 + 조회수 기능 추가" />
++    <option name="LAST_COMMIT_MESSAGE" value="feat : 좋아요 기능 추가 + 조회수 기능 추가" />
+   </component>
+ </project>
+\ No newline at end of file

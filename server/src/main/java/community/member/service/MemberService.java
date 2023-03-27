@@ -55,8 +55,13 @@ public class MemberService {
 
     public Member updateMember(Member member){
         Member findMember = findVerifiedMember(member.getMemberId());
+    
+        /*비밀번호 변경*/
+        String password=member.getPassword();
+        String encryptedPassword=passwordEncoder.encode(password);
+        member.setPassword(encryptedPassword);
 
-        Member updatedMember = (Member) customBeanUtils.copyNonNullProperties(member, findMember);
+        Member updatedMember = (Member) customBeanUtils.copyNonNullProperties(member, findMember); //dto -> member 복사
 
         return memberRepository.save(updatedMember);
     }

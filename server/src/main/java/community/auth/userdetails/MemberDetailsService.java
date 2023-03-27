@@ -46,6 +46,7 @@ public class MemberDetailsService implements UserDetailsService { // 계정정�
             setRoles(member.getRoles());
             setName(member.getName());
             setLevel(member.getLevel());
+            setPoint(member.getPoint());
         }
 
         @Override

@@ -34,6 +34,7 @@ public class MemberAuthenticationSuccessHandler implements AuthenticationSuccess
         loginResponse.put("roles", member.getRoles());
         loginResponse.put("level", member.getLevel().getLevel()); //추가
         loginResponse.put("name", member.getName());
+        loginResponse.put("point", member.getPoint());
 
 
         ObjectMapper objectMapper = new ObjectMapper();
