@@ -32,6 +32,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final StringPath email = createString("email");
 
+    public final BooleanPath google = createBoolean("google");
+
     public final QLevel level;
 
     public final NumberPath<Long> memberId = createNumber("memberId", Long.class);

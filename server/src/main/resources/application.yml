@@ -1,10 +1,23 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: ENC(u1zdiidtXl1V/KBoFZBC+iry0xtve8IK/ZRy7aNPR2G6E/Jl8rrToCVLyukM6cmawA2kznBPUQ0muhgdThScTatI4JCn9/Mx81KM0HEM/90qS+qXoVZwTw==)
+            clientSecret: ENC(QRkPau+fOA3BAbHqebhdfbo2EPrp7bxDgjGjIosraNw42YGCyeHhN89LwmZuKs5X)
+            scope:
+              - email
+              - profile
   jackson:
     property-naming-strategy: SNAKE_CASE
   datasource:
     url: ENC(ImRNgs/uESNrQ01QEDXsp7wzt00GeiVmhnZhEvjtGniC1yEvZ4TKq5U+kRCGu45QpAJ512hAOuUhXZ6k0k9KO8PWEWQrYKo9WSLmSF6RX71WP8Irldl1QY7KyEw345WG3Jrgv+3Fv5Eqlf+mldNdQw==)
     username: ENC(FANnAPp1m+SsIgLyBF6Yug==)
     password: ENC(TpumaLOo9HiikrzIQ66yY4ah/HwXKq3X)
+#    url: jdbc:mysql://localhost:3306/community?autoReconnect=true
+#    username: root
+#    password: 1234
   redis:
     host: localhost
     port: 6379
