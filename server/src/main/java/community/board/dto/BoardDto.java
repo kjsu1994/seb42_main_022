@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class BoardDto {
-    @Getter @Setter //@ModelAttribute 사용하기위함
+    @Getter
+    @Setter //@ModelAttribute 사용하기위함
     @NoArgsConstructor //@ModelAttribute 사용하기위함
     @ToString
     public static class Post {
@@ -25,8 +26,11 @@ public class BoardDto {
         @NotBlank(message = "제목을 작성해주세요")
         @Size(max = 100, message = "100자 이내로 작성해 주세요.")
         private String title;
-        @NotBlank(message = "내용은 공백이 아니어야 합니다.")
+
+        //        @NotBlank(message = "내용은 공백이 아니어야 합니다.")
+        @Size(max = 5000, message = "5000자 이내로 작성해주세요.")
         private String contents;
+
         public Post(Long memberId, String title, String contents) {
             this.memberId = memberId;
             this.title = title;
@@ -34,7 +38,8 @@ public class BoardDto {
         }
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     @RequiredArgsConstructor
     @ToString
     public static class Patch {
@@ -43,7 +48,7 @@ public class BoardDto {
         private String title;
 
         @Size(max = 5000, message = "5000자 이내로 작성해주세요.")
-        @NotBlank(message = "내용은 공백이 아니어야 합니다.")
+//        @NotBlank(message = "내용은 공백이 아니어야 합니다.")
         private String contents;
     }
 
