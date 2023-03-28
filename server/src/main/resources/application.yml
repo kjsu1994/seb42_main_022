@@ -34,6 +34,10 @@ spring:
       detection-strategy: annotated
   profiles:
     include: api-key   #key가 저장된 yml 연동
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 mail:
   address:
