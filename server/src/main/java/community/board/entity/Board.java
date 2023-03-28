@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import community.comment.entity.Comment;
 import community.config.AuditingFields;
+import community.like.entity.BoardLike;
 import community.member.entity.Member;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -54,6 +55,11 @@ public class Board extends AuditingFields {
     @OneToMany(mappedBy = "board",cascade = CascadeType.ALL, orphanRemoval = true) // 게시판과 생명주기 동일하게 관리
     @ToString.Exclude // ToString
     private List<UploadFile> uploadFiles = new ArrayList<>();
+    @JsonIgnore // 순환참조 방지
+    @OneToMany(mappedBy = "board",cascade = CascadeType.ALL, orphanRemoval = true) // 게시판과 생명주기 동일하게 관리
+    @ToString.Exclude // ToString
+    private List<BoardLike> boardLikes = new ArrayList<>();  // 좋아요 누르면 삭제안되는 오류방지
+
 
     //equals 해시코드 기능 생성 / id가 같으면 같은게시물로 취급
     @Override
