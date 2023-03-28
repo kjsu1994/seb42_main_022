@@ -49,9 +49,9 @@ public class AuthService {
         long refreshExpireTime = (long) jsonArray.get("exp") * 1000;
         long diffDays = (refreshExpireTime - now) / 1000 / (24 * 3600);
         if (diffDays < 1) {
-            String newRefreshToken = oauth2MemberSuccessHandler.delegateRefreshToken(member);
-            accessTokenResponseMap.put("Refresh", newRefreshToken);
-            findRefreshToken.setRefreshToken(newRefreshToken);
+            //String newRefreshToken = oauth2MemberSuccessHandler.delegateRefreshToken(member);
+            accessTokenResponseMap.put("Refresh", refreshToken); //같은 리프레시 토큰값을 가지기 위해 수정
+            findRefreshToken.setRefreshToken(refreshToken);
             refreshTokenRepository.save(findRefreshToken);
         }
         accessTokenResponseMap.put("Authorization", "Bearer " + accessToken);

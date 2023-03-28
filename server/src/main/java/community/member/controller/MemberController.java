@@ -115,6 +115,4 @@ public class MemberController {
         List<LevelDto> response = mapper.levelsToLevelResponseList(levels);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
 }

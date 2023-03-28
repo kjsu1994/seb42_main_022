@@ -4,6 +4,7 @@ import com.querydsl.core.types.dsl.DateTimeExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import community.board.entity.Board;
 import community.board.entity.QBoard;
+import community.member.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +26,9 @@ public interface BoardRepository extends JpaRepository<Board, Long>,
 
     //카테고리별 전체검색
     Page<Board> findAllByKindOfBoard(Board.KindOfBoard kindOfBoard, Pageable pageable);
+
+    //회원이 작성한 게시글목록
+    Page<Board> findAllByMember(Member member, Pageable pageable);
 
     //검색기능 관련 / 게시판 종류 -> 이름이 포함된것을 찾아라
     Page<Board> findByKindOfBoardAndTitleContaining(Board.KindOfBoard kindOfBoard, String title, Pageable pageable); //제목검색

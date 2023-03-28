@@ -187,6 +187,18 @@ public class BoardController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    /*회원 게시물 목록 조회*/
+    @GetMapping("/myBoards/{member-id}")
+    public ResponseEntity<?> memberBoards(@PathVariable("member-id") @Positive long memberId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        Page<Board> boardPage = boardService.findMemberBoards(memberId, pageable);
+        List<Board> boards = boardPage.getContent();
+
+        List<BoardDto.TotalPageListResponse> response = boardMapper.boardToBoardListResponse(boards);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{board-id}")
     public ResponseEntity<?> deleteBoard(@PathVariable("board-id") @Positive long boardId) {
         boardService.deleteBoard(boardId);

@@ -74,6 +74,13 @@ public class BoardService {
         }return null;
     }
 
+    /*회원이 작성한 게시글 목록*/
+    @Transactional(readOnly = true)
+    public Page<Board> findMemberBoards(long memberId, Pageable pageable){
+        Member member = memberService.findMember(memberId);
+        return boardRepository.findAllByMember(member, pageable);
+    }
+
 
     /* 추천 게시글 페이지 */
     @Transactional
@@ -114,4 +121,5 @@ public class BoardService {
     public int updateViewCount(Long id) {
         return boardRepository.updateViewCount(id);
     }
+
 }
