@@ -58,9 +58,16 @@ public class MemberService {
         String encryptedPassword=passwordEncoder.encode(password);
         member.setPassword(encryptedPassword);
 
+        /*일반항목 유지*/
+        Optional.of(findMember.getBoardCount()).ifPresent(member::setBoardCount);
+        Optional.of(findMember.getTreeCount()).ifPresent(member::setTreeCount);
+        Optional.of(findMember.getPoint()).ifPresent(member::setPoint);
+        Optional.of(findMember.getCommentCount()).ifPresent(member::setCommentCount);
+
         Member updatedMember = (Member) customBeanUtils.copyNonNullProperties(member, findMember); //dto -> member 복사
 
-        return updatedMember;
+
+        return findMember;
     }
 
     public void deleteMember(long memberId){
