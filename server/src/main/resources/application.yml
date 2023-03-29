@@ -45,7 +45,7 @@ mail:
 
 jwt:
   secret-key: ENC(QTKjempCn+a9nX+/g7yPL4cjydlx3H++BoqZvdD8hnQbs2A7jwmhG48/6S179LF5XSxEkLNakdwsXbcJtg5/Uw==)
-  access-token-expiration-minutes: 60
+  access-token-expiration-minutes: 1440
   refresh-token-expiration-minutes: 420
 
 cloud: # AWS 계정 설정
