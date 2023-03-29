@@ -60,7 +60,7 @@ public class MemberService {
 
         Member updatedMember = (Member) customBeanUtils.copyNonNullProperties(member, findMember); //dto -> member 복사
 
-        return memberRepository.save(updatedMember);
+        return updatedMember;
     }
 
     public void deleteMember(long memberId){
