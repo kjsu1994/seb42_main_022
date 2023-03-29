@@ -1,5 +1,6 @@
 package community.member.controller;
 
+import community.board.service.S3Service;
 import community.globaldto.SingleResponseDto;
 import community.member.dto.LevelDto;
 import community.member.dto.MemberDto;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -35,20 +37,29 @@ public class MemberController {
     private final MemberService memberService;
     private final MemberMapper mapper;
     private final LevelService levelService;
+    private final S3Service s3Service;
 
     @PostMapping
     public ResponseEntity postMember(@Valid @RequestBody MemberDto.Post requestBody){
-        System.out.println(requestBody.toString());
         Member member=mapper.memberPostToMember(requestBody);
-        System.out.println(member.toString());
         Member createdMember=memberService.createMember(member);
-        System.out.println(createdMember.toString());
 
         Level level = levelService.memberlevel(createdMember); //만들어진 회원에 대한 레벨테이블
         LevelDto levelResponse = mapper.levelToLevelResponse(level); // 해당 레벨 리스폰스
 
         return new ResponseEntity<>(new SingleResponseDto<>(mapper.memberToMemberResponse(createdMember, levelResponse)), HttpStatus.CREATED);
     }
+    @PostMapping("/uploadProfile/{member-id}")
+    public ResponseEntity postProfile(@PathVariable("member-id") @Positive long memberId,
+                                      @ModelAttribute MultipartFile[] file) throws Exception {
+        Member uploadProfile=s3Service.userProfile(file, memberId);
+
+        Level level = levelService.memberlevel(uploadProfile); //만들어진 회원에 대한 레벨테이블
+        LevelDto levelResponse = mapper.levelToLevelResponse(level); // 해당 레벨 리스폰스
+
+        return new ResponseEntity<>(new SingleResponseDto<>(mapper.memberToMemberResponse(uploadProfile, levelResponse)), HttpStatus.OK);
+    }
+
     @PostMapping("/donation/{member-id}") // 나무심기 버튼용
     public ResponseEntity postDonation(@PathVariable("member-id") @Positive long memberId){
         Member member = memberService.donateTree(memberId);

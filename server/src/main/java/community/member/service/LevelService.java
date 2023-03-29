@@ -19,6 +19,9 @@ public class LevelService {
     /*회원 레벨*/
     public Level memberlevel(Member member) {
         Level level = findLevel(member.getMemberId()); //회원 레벨정보 가져오기
+        if(level.getUserName() != member.getName()) {
+            level.setUserName(member.getName()); //회원이름이 수정되었을때 반영
+        }
         gainExperience(member, level); // 경험치 정보 업데이트
 
         int myLevel = level.getLevel();

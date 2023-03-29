@@ -63,8 +63,7 @@ public class MemberDto {
         private String phone;
         private String point;
         private String treeCount;
-//        private String boardCount;
-//        private String commentCount;
+        private String profileUrl;
         @JsonProperty("member_status")
         private Member.MemberStatus memberStatus;
 //        private List<String> roles; //role이 user뿐이라 필요없음

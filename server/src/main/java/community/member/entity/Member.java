@@ -27,23 +27,19 @@ public class Member{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long memberId;
-
     @Enumerated(value = EnumType.STRING)
     @Column(length = 20, nullable = false)
     private MemberStatus memberStatus = MemberStatus.MEMBER_ACTIVE;
-
     @Column
     private String name;
-
     @Column
     private String email;
-
     @Column
     private String phone;
-
     @Column
     String password;
 //    private String likeStatus; // 좋아요 눌렀는지 여부
+    String profileUrl;
 
     @Column(nullable = false)
     boolean google;
