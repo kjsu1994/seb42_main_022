@@ -4,11 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import community.member.entity.Member;
 import lombok.*;
 
-import javax.sound.midi.Patch;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import java.util.List;
 
 public class MemberDto {
     @Getter
@@ -79,5 +77,12 @@ public class MemberDto {
         private String name;
         private String treeCount;
     }
+
+    @AllArgsConstructor
+    @Getter
+    public static class creatorProfile { //전체게시글 유저 프로필
+        String profileUrl;
+    }
+
 }
 

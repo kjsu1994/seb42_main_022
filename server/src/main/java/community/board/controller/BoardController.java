@@ -103,7 +103,7 @@ public class BoardController {
                                               @RequestParam(required = false) String searchValue,
                                               @PageableDefault(size = 100, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) throws Exception //페이지 기본값
     {
-        boardService.nameAndLevelUpdate(); //작성자들의 레벨 및 이름 업데이트
+        boardService.userAndLevelUpdate(); //작성자들의 레벨 및 이름 업데이트
 
         Page<Board> boardPage = boardService.findBoards(Board.KindOfBoard.FREE_BOARD, searchType, searchValue, pageable);
         List<Board> boards = boardPage.getContent();
@@ -118,7 +118,7 @@ public class BoardController {
                                              @RequestParam(required = false) String searchValue,
                                              @PageableDefault(size = 100, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) throws Exception //페이지 기본값
     {
-        boardService.nameAndLevelUpdate(); //작성자들의 레벨 및 이름 업데이트 /검색하는사람의 토큰값으로 확인가능
+        boardService.userAndLevelUpdate(); //작성자들의 레벨 및 이름 업데이트 /검색하는사람의 토큰값으로 확인가능
 
         Page<Board> boardPage = boardService.findBoards(Board.KindOfBoard.ECO_REVIEW, searchType, searchValue, pageable);
         List<Board> boards = boardPage.getContent();
@@ -133,7 +133,7 @@ public class BoardController {
                                                @RequestParam(required = false) String searchValue,
                                                @PageableDefault(size = 100, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) throws Exception //페이지 기본값
     {
-        boardService.nameAndLevelUpdate(); //작성자들의 레벨 및 이름 업데이트
+        boardService.userAndLevelUpdate(); //작성자들의 레벨 및 이름 업데이트
 
         Page<Board> boardPage = boardService.findBoards(Board.KindOfBoard.GREEN_ACTIVE, searchType, searchValue, pageable);
         List<Board> boards = boardPage.getContent();

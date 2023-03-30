@@ -1,7 +1,6 @@
 package community.board.service;
 
 import community.board.entity.Board;
-import community.like.repository.BoardLikeRepository;
 import community.member.entity.Member;
 import community.member.repository.MemberRepository;
 import community.member.service.LevelService;
@@ -91,9 +90,9 @@ public class BoardService {
     }
     
     /*게시글 작성자들의 이름, level정보 업데이트*/
-    public void nameAndLevelUpdate(){
+    public void userAndLevelUpdate(){
         List<Board> boards = boardRepository.findAll(); //전체조회
-        for(Board board : boards){
+        for(Board board : boards){  //항상 수정되게 하는 이 코드를 어떻게하면 효율적으로 바꿀 수 있을까?
             board.setBoardCreator(board.getMember().getName());
             board.setCreatorLevel(board.getMember().getLevel().getLevel());
         }
