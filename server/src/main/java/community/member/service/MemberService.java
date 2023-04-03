@@ -47,12 +47,14 @@ public class MemberService {
         level.setUserName(savedMember.getName()); // 회원이름 연결
         member.setLevel(level); // 레벨 - 회원 테이블 연결
 
+        savedMember.setPoint(1000);
+
         return savedMember;
     }
 
     public Member updateMember(Member member){
         Member findMember = findVerifiedMember(member.getMemberId());
-    
+
         /*비밀번호 변경*/
         String password=member.getPassword();
         String encryptedPassword=passwordEncoder.encode(password);
